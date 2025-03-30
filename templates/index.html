@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeSentry - Code Analysis Tool</title>
+    <style>
+        :root {
+            --primary: #4a6bdf;
+            --primary-dark: #3451b2;
+            --secondary: #30b8c4;
+            --dark: #1a2b3c;
+            --light: #f8fafc;
+            --gray: #e2e8f0;
+            --gray-dark: #94a3b8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--dark);
+        }
+        
+        .logo-icon {
+            background-color: var(--primary);
+            color: white;
+            height: 36px;
+            width: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .main {
+            display: flex;
+            flex-direction: column;
+            margin-top: 40px;
+            min-height: calc(100vh - 180px);
+        }
+        
+        .repo-input-section {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            max-width: 800px;
+            margin: 0 auto 40px;
+            width: 100%;
+        }
+        
+        .repo-input-section h2 {
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        #repo-url {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        #repo-url:focus {
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn:disabled {
+            background-color: var(--gray-dark);
+            cursor: not-allowed;
+        }
+        
+        .chat-container {
+            display: none;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            height: 600px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .repo-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray);
+            background-color: var(--light);
+        }
+        
+        .repo-name {
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .change-repo {
+            font-size: 14px;
+            color: var(--primary);
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .change-repo:hover {
+            text-decoration: underline;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            word-break: break-word;
+        }
+        
+        .user-message {
+            background-color: var(--primary);
+            color: white;
+            align-self: flex-end;
+        }
+        
+        .assistant-message {
+            background-color: var(--gray);
+            color: var(--dark);
+            align-self: flex-start;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 16px;
+            border-top: 1px solid var(--gray);
+            gap: 10px;
+        }
+        
+        #user-message {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+        }
+        
+        #user-message:focus {
+            border-color: var(--primary);
+        }
+        
+        .welcome-section {
+            text-align: center;
+            max-width: 600px;
+            margin: 60px auto;
+        }
+        
+        .welcome-section h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        
+        .welcome-section p {
+            font-size: 18px;
+            color: var(--gray-dark);
+            margin-bottom: 30px;
+        }
+        
+        .features {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .feature {
+            background-color: white;
+            padding: 24px;
+            border-radius: 12px;
+            flex: 1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .feature h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            color: #e53e3e;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .features {
+                flex-direction: column;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
+                            <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
+                        </svg>
+                    </div>
+                    <span>CodeSentry</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="main container">
+        <div class="welcome-section" id="welcome-section">
+            <h1>Welcome to CodeSentry</h1>
+            <p>Analyze your GitHub repositories and chat with your codebase to gain insights and understand your code better.</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <h3>Code Analysis</h3>
+                    <p>Deep analysis of your codebase to understand its structure, patterns, and potential issues.</p>
+                </div>
+                <div class="feature">
+                    <h3>Interactive Chat</h3>
+                    <p>Ask questions about your code in natural language and get instant, intelligent responses.</p>
+                </div>
+                <div class="feature">
+                    <h3>GitHub Integration</h3>
+                    <p>Seamlessly connect with your GitHub repositories to start analyzing right away.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="repo-input-section" id="repo-input-section">
+            <h2>Enter GitHub Repository URL</h2>
+            <p>Provide a GitHub repository URL to analyze the codebase and start chatting.</p>
+            <form id="repo-form">
+                <div class="input-group">
+                    <input type="text" id="repo-url" name="repo_link" placeholder="https://github.com/username/repository" />
+                    <button type="submit" class="btn" id="analyze-btn">Analyze Repository</button>
+                </div>
+                <div class="error-message" id="error-message"></div>
+            </form>
+        </div>
+        
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Analyzing repository...</p>
+            <p>This may take a moment depending on the size of the codebase</p>
+        </div>
+        
+        <div class="chat-container" id="chat-container">
+            <div class="repo-info">
+                <div class="repo-name" id="current-repo">Repository name</div>
+                <button class="change-repo" id="change-repo-btn">Change repository</button>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <!-- Messages will be added here dynamically -->
+            </div>
+            <div class="chat-input">
+                <textarea id="user-message" placeholder="Ask about your code..." rows="1"></textarea>
+                <button class="btn" id="send-btn">Send</button>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const repoForm = document.getElementById('repo-form');
+            const repoUrlInput = document.getElementById('repo-url');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const welcomeSection = document.getElementById('welcome-section');
+            const repoInputSection = document.getElementById('repo-input-section');
+            const loader = document.getElementById('loader');
+            const chatContainer = document.getElementById('chat-container');
+            const chatMessages = document.getElementById('chat-messages');
+            const userMessageInput = document.getElementById('user-message');
+            const sendBtn = document.getElementById('send-btn');
+            const currentRepoElement = document.getElementById('current-repo');
+            const changeRepoBtn = document.getElementById('change-repo-btn');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Store chat history
+            let chatHistory = [];
+            
+            // Auto-resize textarea
+            userMessageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+                // Reset to default height if emptied
+                if (this.value === '') {
+                    this.style.height = '';
+                }
+            });
+            
+            // Send message on Enter (but allow Shift+Enter for new lines)
+            userMessageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Handle repository form submission
+            repoForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const repoUrl = repoUrlInput.value.trim();
+                
+                if (!isValidGithubUrl(repoUrl)) {
+                    errorMessage.textContent = 'Please enter a valid GitHub repository URL';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Show loader and hide other sections
+                welcomeSection.style.display = 'none';
+                repoInputSection.style.display = 'none';
+                loader.style.display = 'block';
+                errorMessage.style.display = 'none';
+                
+                try {
+                    // Submit the form to the Flask backend
+                    const formData = new FormData(repoForm);
+                    const response = await fetch('/chatbot', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to analyze repository');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Extract repo name from URL
+                    const repoName = extractRepoName(repoUrl);
+                    currentRepoElement.textContent = repoName;
+                    
+                    // Hide loader and show chat
+                    loader.style.display = 'none';
+                    chatContainer.style.display = 'flex';
+                    
+                    // Add welcome message
+                    addMessage(`I've analyzed the repository ${repoName}. What would you like to know about this codebase?`, 'assistant');
+                    
+                    // Clear chat history
+                    chatHistory = [];
+                    
+                } catch (error) {
+                    // Handle error
+                    loader.style.display = 'none';
+                    repoInputSection.style.display = 'block';
+                    errorMessage.textContent = 'Error analyzing repository: ' + error.message;
+                    errorMessage.style.display = 'block';
+                }
+            });
+            
+            // Send message
+            sendBtn.addEventListener('click', sendMessage);
+            
+            // Change repository
+            changeRepoBtn.addEventListener('click', function() {
+                chatContainer.style.display = 'none';
+                repoInputSection.style.display = 'block';
+                chatMessages.innerHTML = '';
+                
+                // Send "clear" command to backend to remove repo folder
+                fetch('/get', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        msg: 'clear'
+                    })
+                });
+            });
+            
+            async function sendMessage() {
+                const message = userMessageInput.value.trim();
+                
+                if (message === '') return;
+                
+                // Add user message to chat
+                addMessage(message, 'user');
+                
+                // Clear input
+                userMessageInput.value = '';
+                userMessageInput.style.height = '';
+                
+                // Disable the send button while processing
+                sendBtn.disabled = true;
+                
+                try {
+                    // Send message to backend
+                    const response = await fetch('/get', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            msg: message
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to get response');
+                    }
+                    
+                    const responseText = await response.text();
+                    
+                    // Add response to chat
+                    addMessage(responseText, 'assistant');
+                    
+                    // Update chat history for context
+                    chatHistory.push({ role: 'user', content: message });
+                    chatHistory.push({ role: 'assistant', content: responseText });
+                    
+                } catch (error) {
+                    // Handle error
+                    addMessage('Sorry, there was an error processing your request. Please try again.', 'assistant');
+                } finally {
+                    sendBtn.disabled = false;
+                }
+            }
+            
+            function addMessage(content, sender) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', `${sender}-message`);
+                
+                // Handle markdown formatting (you might want to add a markdown parser library for better support)
+                // For now, handle basic code formatting
+                content = content.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+                content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+                
+                messageElement.innerHTML = content;
+                
+                chatMessages.appendChild(messageElement);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function isValidGithubUrl(url) {
+                // Basic validation for GitHub URL format
+                const githubRegex = /^https:\/\/github\.com\/[^\/]+\/[^\/]+\/?$/;
+                return githubRegex.test(url);
+            }
+            
+            function extractRepoName(url) {
+                // Extract username and repository name from URL
+                try {
+                    const urlObj = new URL(url);
+                    const pathParts = urlObj.pathname.split('/').filter(Boolean);
+                    
+                    if (pathParts.length >= 2) {
+                        return `${pathParts[0]}/${pathParts[1]}`;
+                    }
+                    
+                    return url; // Fallback
+                } catch (error) {
+                    return url; // Fallback if URL parsing fails
+                }
+            }
+        });
+    </script>
+</body>
+</html>
