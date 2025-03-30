@@ -71,7 +71,7 @@ def chat():
     question_answer_chain = create_stuff_documents_chain(llm,prompt)
     rag_chain = create_retrieval_chain(history_aware_retriever,question_answer_chain)
     result = rag_chain.invoke({"input": input,"chat_history":chat_history})
-    return str(result["answer"])
+    return str(markdown_to_text(result["answer"]))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=8080,debug=True)
